@@ -1,0 +1,37 @@
+name: Generar unifilares y memoria
+
+on:
+  push:
+    paths:
+      - 'Tableros.xlsx'
+      - 'generador_unifilares.py'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # WeasyPrint necesita libpango; en ubuntu-22.04 ya viene, pero por si acaso
+      - name: Instalar dependencias de sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libffi-dev
+
+      - name: Instalar dependencias Python
+        run: pip install -r requirements.txt
+
+      - name: Generar entregables
+        run: python generador_unifilares.py Tableros.xlsx
+
+      - name: Publicar artefactos
+        uses: actions/upload-artifact@v4
+        with:
+          name: entregables-electricos
+          path: generated/
+          if-no-files-found: error
